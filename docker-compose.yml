@@ -1,0 +1,88 @@
+version: "3.7"
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - "8888:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - laravel
+  
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: tfm-backend
+      MYSQL_USER: dianamor8
+      MYSQL_PASSWORD: dianamor8
+      MYSQL_ROOT_PASSWORD: admin.root
+    ports:
+      - "33069:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - laravel
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8077:80"
+    environment:      
+      - PMA_HOST=mysql      
+    depends_on: 
+      - mysql
+    networks:
+      - laravel
+      
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "9000:80"
+    networks:
+      - laravel
+  
+  # composer:
+  #   image: composer:latest
+  #   container_name: composer
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   working_dir: /var/www/html
+  #   networks:
+  #     - laravel
+  
+  # npm:
+  #   image: node:alpine3.12
+  #   container_name: npm 
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   working_dir: /var/www/html
+  #   entrypoint: ['npm']
+  #   networks:
+  #     - laravel
+  
+  # artisan:
+  #   build:
+  #     context: .      
+  #   container_name: artisan
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   entrypoint: ['php', '/var/www/html/artisan'] # Added 'php' before '/var/www/html/artisan'
+  #   working_dir: /var/www/html
+  #   networks:
+  #     - laravel
+
+networks:
+  laravel:
